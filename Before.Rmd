@@ -416,30 +416,34 @@ full_data %>%
   filter(Date %in% window1_predict$Date) -> fc_actual
 
 window1_predict %>%
+  filter(Date <= "2022-09-09") %>%
   mutate(resid = I -fc_actual$I) %>%
   summarise(MAE = mean(abs(resid)),
             RMSE = sqrt(mean(resid^2)))
-mean(abs(window1_predict$resid))
 
 window2_predict %>%
+  filter(Date <= "2022-09-09") %>%
   mutate(resid = I -fc_actual$I) %>%
   summarise(MAE = mean(abs(resid)),
             RMSE = sqrt(mean(resid^2)))
 
 
 window3_predict %>%
+  filter(Date <= "2022-09-09") %>%
   mutate(resid = I -fc_actual$I) %>%
   summarise(MAE = mean(abs(resid)),
             RMSE = sqrt(mean(resid^2)))
 
 
 window4_predict %>%
+  filter(Date <= "2022-09-09") %>%
   mutate(resid = I -fc_actual$I)%>%
   summarise(MAE = mean(abs(resid)),
             RMSE = sqrt(mean(resid^2)))
 
 
 window5_predict %>%
+  filter(Date <= "2022-09-09") %>%
   mutate(resid = I -fc_actual$I) %>%
   summarise(MAE = mean(abs(resid)),
             RMSE = sqrt(mean(resid^2)))
