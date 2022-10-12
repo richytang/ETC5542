@@ -15,7 +15,7 @@ library(EpiEstim)
 ```
 
 ```{r, echo=FALSE}
-read_csv("covidlive_data_2022-10-02.csv") %>%
+read_csv("covidlive_data_2022-09-12.csv") %>%
   select(-...1) %>% 
   filter(date_confirmation <= '2022-09-09') -> covidlive_ll
 
@@ -367,7 +367,7 @@ add_season_pattern <- function(f_data, seasona_data){
   seasona_data %>%
     filter(Date %in% season_date) -> seasona_df
   
-  f_data$I <- f_data$I + seasona_df$season_week
+  f_data$I <- f_data$I * exp(seasona_df$season_week)
   return(f_data)
 }
 ```
@@ -407,5 +407,40 @@ I use back transformed seasonal adjust into my model. Then, I add seasonal patte
 
 ```{r}
 decomp_comp
+```
 
+# Accuary
+
+```{r}
+full_data %>%
+  filter(Date %in% window1_predict$Date) -> fc_actual
+
+window1_predict %>%
+  mutate(resid = I -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+mean(abs(window1_predict$resid))
+
+window2_predict %>%
+  mutate(resid = I -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window3_predict %>%
+  mutate(resid = I -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window4_predict %>%
+  mutate(resid = I -fc_actual$I)%>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window5_predict %>%
+  mutate(resid = I -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
 ```

@@ -15,7 +15,7 @@ library(EpiEstim)
 ```
 
 ```{r, echo=FALSE}
-read_csv("covidlive_data_2022-10-02.csv") %>%
+read_csv("covidlive_data_2022-09-12.csv") %>%
   select(-...1) %>% 
   filter(date_confirmation <= '2022-09-09') -> covidlive_ll
 
@@ -468,3 +468,49 @@ full_data %>%
 ```
 
 I use seasonal adjust into my model, and do back transformation. Then, I construct CI by poisson distribution. The CI is also very narrow
+
+# Accuary
+
+```{r}
+full_data %>%
+  filter(Date %in% window1_predict$Date) -> fc_actual
+
+window1_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = exp(I) - fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+window2_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = exp(I) -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window3_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = exp(I) -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window4_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = exp(I) -fc_actual$I)%>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+
+window5_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = exp(I) -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+
+mean_predict %>%
+  filter(Date <= "2022-09-09") %>%
+  mutate(resid = I -fc_actual$I) %>%
+  summarise(MAE = mean(abs(resid)),
+            RMSE = sqrt(mean(resid^2)))
+```
