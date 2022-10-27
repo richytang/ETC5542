@@ -8,13 +8,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
 
-```{r, echo = FALSE}
+```{r}
 library(fpp3)
 library(tidyverse)
 library(EpiEstim)
 ```
 
-```{r, echo=FALSE}
+```{r}
 read_csv("covidlive_data_2022-09-12.csv") %>%
   select(-...1) %>% 
   filter(date_confirmation <= '2022-09-09') -> covidlive_ll
@@ -28,7 +28,7 @@ colnames(full_data) <- c("Date", 'I')
 
 # Orginal data
 
-```{r, echo = FALSE}
+```{r}
 full_data %>%
   as_tsibble(index = Date) -> data_ts
 ```
@@ -40,17 +40,19 @@ data_ts %>%
 
 # log transformation
 
-```{r, echo = FALSE}
+```{r}
 data_ts %>%
   filter(Date >= ymd("2021-01-01")) %>%
   autoplot(log(I))
 ```
 
-```{r, echo = FALSE}
+```{r}
 data_ts %>%
   filter(Date >= ymd("2021-07-01")) %>%
   autoplot(log(I))
 ```
+
+# Time Decomposition
 
 ```{r, echo = FALSE}
 data_ts %>%
@@ -58,7 +60,14 @@ data_ts %>%
   model(stl = STL(log(I) ~ season(period = "week", window = 28))) -> decomp
 ```
 
-```{r, echo=FALSE}
+```{r}
+decomp %>%
+  components() %>%
+  autoplot()
+```
+
+
+```{r}
 data_ts %>%
   filter(Date >= ymd("2021-07-01")) -> df
 components(decomp) -> decomp_comp
@@ -69,13 +78,15 @@ ggplot() +
   ylab("log(I)")
 ```
 
-```{r, echo = FALSE}
+Back transformation
+
+```{r}
 decomp_comp %>%
   select(Date, season_adjust) %>%
   mutate(season_adjust = exp(season_adjust)) -> full_data_adj
 ```
 
-```{r, echo = FALSE}
+```{r}
 colnames(full_data_adj) <- c("Date", "I")
 
 data.frame(full_data_adj) -> data
@@ -226,7 +237,9 @@ add_season_pattern <- function(f_data, seasona_data){
 }
 ```
 
-```{r, echo = FALSE}
+set windows
+
+```{r}
 #09/01 708
 # one week
 t_one <- seq(60, nrow(data)-7)
@@ -252,7 +265,7 @@ te_five <- t_five + 35
 
 Using SI mean 4.7, std 2.9
 
-```{r, echo = FALSE}
+```{r}
 res_w1 <- r_estiamte(df = data, start = t_one, end = te_one, mean = 4.7, std = 2.9)
 res_w2 <- r_estiamte(df = data, start = t_two, end = te_two, mean = 4.7, std = 2.9)
 res_w3 <- r_estiamte(df = data, start = t_three, end = te_three, mean = 4.7, std = 2.9)
@@ -260,7 +273,7 @@ res_w4 <- r_estiamte(df = data, start = t_four, end = te_four, mean = 4.7, std =
 res_w5 <- r_estiamte(df = data, start = t_five, end = te_five, mean = 4.7, std = 2.9)
 ```
 
-```{r, echo = FALSE}
+```{r}
 tibble("Date" = data$Date[te_one],"R" = res_w1$R$`Mean(R)`, "window" = "w1") -> r_w1
 tibble("Date" = data$Date[te_two],"R" = res_w2$R$`Mean(R)`, "window" = "w2") -> r_w2
 tibble("Date" = data$Date[te_three],"R" = res_w3$R$`Mean(R)`, "window" = "w3") -> r_w3
@@ -268,14 +281,14 @@ tibble("Date" = data$Date[te_four],"R" = res_w4$R$`Mean(R)`, "window" = "w4") ->
 tibble("Date" = data$Date[te_five],"R" = res_w5$R$`Mean(R)`, "window" = "w5") -> r_w5
 ```
 
-```{r, echo = FALSE}
+```{r}
 bind_rows(r_w1, r_w2) %>%
   bind_rows(r_w3) %>%
   bind_rows(r_w4) %>%
   bind_rows(r_w5) -> df_f
 ```
 
-```{r, echo = FALSE}
+```{r}
 df_f %>%
   ggplot() +
   geom_line(aes(x = Date, y = R, color = window)) +
@@ -283,7 +296,9 @@ df_f %>%
   theme_bw()
 ```
 
-```{r, echo = FALSE}
+# Forecast
+
+```{r}
 start_date <- ymd("2022-07-01")
 end_date <- ymd("2022-09-09")
 range <- seq(start_date, end_date,"week")
@@ -295,7 +310,7 @@ window_w4 <- find_r(date = range, r_df = res_w4, full_df = full_data_adj)
 window_w5 <- find_r(date = range, r_df = res_w5, full_df = full_data_adj)
 ```
 
-```{r, echo = FALSE}
+```{r}
 window1_predict <- forecast_i(r_date = window_w1, full_df = full_data_adj, r_df = res_w1)
 window2_predict <- forecast_i(r_date = window_w2, full_df = full_data_adj, r_df = res_w2)
 window3_predict <- forecast_i(r_date = window_w3, full_df = full_data_adj, r_df = res_w3)
@@ -305,7 +320,7 @@ window5_predict <- forecast_i(r_date = window_w5, full_df = full_data_adj, r_df 
 
 # Graph for seasonal adjust
 
-```{r, echo = FALSE}
+```{r}
 decomp_comp %>%
   filter(Date >= "2022-07-01") %>%
   ggplot() +
@@ -317,7 +332,7 @@ decomp_comp %>%
   ggtitle("Forecasting for one week window seasonal adjust")
 ```
 
-```{r, echo = FALSE}
+```{r}
 predict_df <- tibble("Date" = window1_predict$Date,
                      "w1" = window1_predict$I,
                      "w2" = window2_predict$I,
@@ -330,13 +345,7 @@ predict_df %>%
   mutate(type = paste0(week, Windows)) -> predict_long
 ```
 
-```{r, echo = FALSE}
-(window1_predict$I + window2_predict$I + window3_predict$I + window4_predict$I + window5_predict$I)/5 -> mean_I
-
-tibble("Date" = window1_predict$Date, "I" = mean_I, "Week" = window1_predict$Week) -> mean_predict
-```
-
-```{r, echo = FALSE}
+```{r}
 decomp_comp %>%
   filter(Date >= "2022-07-01") %>%
   ggplot() +
@@ -348,17 +357,6 @@ decomp_comp %>%
   theme_bw()
 ```
 
-```{r, echo = FALSE}
-decomp_comp %>%
-  filter(Date >= "2022-07-01") %>%
-  ggplot() +
-  geom_line(aes(x = Date,  y = exp(season_adjust),color = "Actual"),color = "grey") +
-  geom_line(aes(x = Date, y = I,color = "mean", group = Week), data = mean_predict) +
-  geom_point(aes(x = Date, y = I,color = "mean"),shape = 2,data = mean_predict, size = 0.5) +
-  theme_bw() +
-  ylab("Number of New Case") +
-  ggtitle("The Mean of Forecasting Value")
-```
 
 It looks good for seasonal adjust
 
@@ -388,13 +386,27 @@ add_season_pattern <- function(f_data, seasona_data){
 }
 ```
 
-```{r, echo = FALSE}
+```{r}
 window1_predict <- add_season_pattern(f_data = window1_predict, seasona_data = decomp_comp)
 window2_predict <- add_season_pattern(f_data = window2_predict, seasona_data = decomp_comp)
 window3_predict <- add_season_pattern(f_data = window3_predict, seasona_data = decomp_comp)
 window4_predict <- add_season_pattern(f_data = window4_predict, seasona_data = decomp_comp)
 window5_predict <- add_season_pattern(f_data = window5_predict, seasona_data = decomp_comp)
 ```
+
+```{r}
+predict_seasonal_df <- tibble("Date" = window1_predict$Date,
+                     "w1" = window1_predict$I,
+                     "w2" = window2_predict$I,
+                     "w3" = window3_predict$I,
+                     "w4" = window4_predict$I,
+                     "w5" = window5_predict$I,
+                     "week" = window1_predict$Week)
+predict_seasonal_df %>%
+  pivot_longer(cols = -c("Date", "week"), names_to = "Windows",values_to = "I") %>%
+  mutate(type = paste0(week, Windows)) -> predict_season_long
+```
+
 
 ```{r}
 full_data %>%
@@ -413,7 +425,7 @@ full_data %>%
   ggplot() +
   geom_line(aes(x = Date,  y = I,color = "Actual"),color = "grey") +
   geom_line(aes(x = Date, y = I,group = interaction(week, Windows), 
-                color = Windows) ,data = predict_long)+
+                color = Windows) ,data = predict_season_long)+
   ggtitle("Forecasting value") +
   ylab("Number of New Case") +
   theme_bw()
@@ -421,9 +433,6 @@ full_data %>%
 
 I use back transformed seasonal adjust into my model. Then, I add seasonal pattern back. For the seasonal pattern, I do exp for seasonal_week from decomp_comp for. However, it is not very significant
 
-```{r}
-decomp_comp
-```
 
 # Accuary
 
