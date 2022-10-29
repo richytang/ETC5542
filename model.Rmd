@@ -425,13 +425,16 @@ predict_seasonal_df %>%
 predict_season_long %>%
   filter(Date <= "2022-09-09") -> predict_season_long
 
+window1_predict %>%
+  filter(Date <= "2022-09-09") -> window_plot
+
 full_data %>%
   filter(Date >= "2022-07-01") %>%
   ggplot() +
   geom_line(aes(x = Date,  y = I,color = "Actual"),color = "grey") +
-  geom_line(aes(x = Date, y = I, color = Week) ,data = window1_predict)+
-  ggtitle("Forecasting value") +
-  ylab("Number of New Case") +
+  geom_line(aes(x = Date, y = I, group = Week), color = "blue" ,data = window_plot)+
+  #ggtitle("Forecasting value") +
+  ylab("The Number of Daily New Case") +
   theme_bw()
 ```
 
