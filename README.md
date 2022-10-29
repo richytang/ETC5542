@@ -12,6 +12,10 @@ The aim of research is to forecast the the number of Covid-19 daily cases
 
 The data comes from <https://covidlive.com.au>. The data file is saved as *covidlive_data_2022-09-12.csv*
 
+The data includes daily new cases for all eight states
+
+Data is from 2020-01-01 to 2022-09-09
+
 ## Methodology
 
 All necessary analysis can be found in `model.md` and `model.pdf`
