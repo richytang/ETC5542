@@ -1,4 +1,4 @@
-## ETC5542 Research Project: Forecasting Covid-19 daily cases
+## ETC5543 Research Project: Forecasting Covid-19 daily cases
 
 Name: Ruiqi Tang
 
