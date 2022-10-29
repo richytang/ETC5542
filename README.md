@@ -18,4 +18,4 @@ All necessary analysis can be found in `model.md` and `model.pdf`
 
 ## report
 
-I have written all analysis as a report. It is *report.pdf*
+I have written all analysis as a report. It is `report.pdf`

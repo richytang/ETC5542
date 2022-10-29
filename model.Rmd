@@ -87,6 +87,15 @@ decomp_comp %>%
 ```
 
 ```{r}
+ggplot() +
+  geom_line(aes(x= Date, y = I), color = "grey", data = df) +
+  geom_line(aes(x = Date, y = season_adjust), color = "red", 
+            data = full_data_adj) +
+  ylab("The Number of Daily New Cases") +
+  theme_bw()
+```
+
+```{r}
 colnames(full_data_adj) <- c("Date", "I")
 
 data.frame(full_data_adj) -> data
@@ -342,18 +351,22 @@ predict_df <- tibble("Date" = window1_predict$Date,
                      "week" = window1_predict$Week)
 predict_df %>%
   pivot_longer(cols = -c("Date", "week"), names_to = "Windows",values_to = "I") %>%
-  mutate(type = paste0(week, Windows)) -> predict_long
+  mutate(type = paste0(week, Windows)) %>%
+  filter()-> predict_long
 ```
 
 ```{r}
+predict_long %>%
+  filter(Date <= "2022-09-09") -> predict_long 
+
 decomp_comp %>%
   filter(Date >= "2022-07-01") %>%
   ggplot() +
   geom_line(aes(x = Date,  y = exp(season_adjust),color = "Actual"),color = "grey") +
   geom_line(aes(x = Date, y = I,group = interaction(week, Windows), 
                 color = Windows) ,data = predict_long)+
-  ggtitle("Forecasting value seasonal adjust") +
-  ylab("Number of New Case") +
+  #ggtitle("Forecasting value seasonal adjust") +
+  ylab("Number of Daily New Case") +
   theme_bw()
 ```
 
@@ -409,6 +422,9 @@ predict_seasonal_df %>%
 
 
 ```{r}
+predict_season_long %>%
+  filter(Date <= "2022-09-09") -> predict_season_long
+
 full_data %>%
   filter(Date >= "2022-07-01") %>%
   ggplot() +
@@ -426,8 +442,8 @@ full_data %>%
   geom_line(aes(x = Date,  y = I,color = "Actual"),color = "grey") +
   geom_line(aes(x = Date, y = I,group = interaction(week, Windows), 
                 color = Windows) ,data = predict_season_long)+
-  ggtitle("Forecasting value") +
-  ylab("Number of New Case") +
+  #ggtitle("Forecasting value") +
+  ylab("The Number of Daily New Case") +
   theme_bw()
 ```
 
